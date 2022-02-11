@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import { StyleSheet, Text, SafeAreaView, Pressable, Image, View } from "react-native";
 import { useState, useEffect } from "react";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
@@ -6,6 +7,9 @@ import { REDIRECT_URI, SCOPES, CLIENT_ID, ALBUM_ID } from "./utils/constants";
 import Colors from './Themes/colors'
 import Images from './Themes/images'
 import SongList from './components/SongList'
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { WebView } from "react-native-webview";
 
 // Endpoints for authorizing with Spotify
 const discovery = {
@@ -48,14 +52,15 @@ export default function App() {
   }, [token]);
 
   let contentDisplayed = null;
+  const Stack = createStackNavigator();
 
   let title = "My Top Tracks"
   if(!topTracks) {
     title = tracks[0] ? tracks[0].album.name : 'Loading...';
   }
 
-  if(token) {
-    contentDisplayed =
+  const SongListScreen = () => {
+    return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -66,7 +71,27 @@ export default function App() {
         </View>
       </View>
       <SongList tracks={tracks} style={styles.songList} />
-    </SafeAreaView>;
+    </SafeAreaView>);
+  }
+
+  const WebViewScreen = ({ route }) => {
+    const { url } = route.params;
+    return <WebView source={{ uri: url }}/>
+  }
+
+  if(token) {
+    contentDisplayed =
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen options={{headerShown: false}} name="SongList" component={SongListScreen}/>
+        <Stack.Screen options={({ route }) => ({
+          title: route.params.name,
+          headerStyle: {backgroundColor: Colors.background},
+          headerTintColor: 'white'
+        })} name="WebViewScreen" component={WebViewScreen}/>
+      </Stack.Navigator>
+    </NavigationContainer>
+    
   } else {
     contentDisplayed =
     <SafeAreaView style={styles.container}>

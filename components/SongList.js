@@ -1,24 +1,35 @@
-import { View, Text, FlatList, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, Dimensions, Pressable } from 'react-native';
 import millisToMinutesAndSeconds from '../utils/millisToMinuteSeconds';
 import Colors from '../Themes/colors'
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SongList(props) {
+  const navigation = useNavigation();
+
   let renderTrack = function({item, index}) {
     const name = item.name;
     const albumImageUrl = item.album.images[0].url;
     const albumName = item.album.name;
     const artists = item.artists.map(artist => artist.name);
+    const detailsUrl = item.external_urls.spotify;
+    const previewUrl = item.preview_url;
     let artistsString = artists[0]
     for(let i = 1; i < artists.length; i++) {
       artistsString += ', ' + artists[i]
     }
     const duration = millisToMinutesAndSeconds(item.duration_ms);
+
+    const navigateToWebView = (destination, name) => {
+      navigation.navigate("WebViewScreen", {url: destination, name: name})
+    }
+
     return (
-      <View>
+      <Pressable onPress={() => navigateToWebView(detailsUrl, "Song Details")}>
         <View style={styles.trackContainer}>
-          <View style={styles.trackIndex}>
-            <Text style={[styles.text, {color: Colors.gray}]}>{index + 1}</Text>
-          </View>
+          <Pressable style={styles.trackIndex} onPress={() => navigateToWebView(previewUrl, "Song Preview")}>
+            <Ionicons style={styles.playIcon} name='play-circle' color={Colors.spotify} size={30}/>
+          </Pressable>
           <View style={styles.trackArt}>
             <Image style={styles.trackArtImage} source={{uri: albumImageUrl}}/>
           </View>
@@ -34,7 +45,7 @@ export default function SongList(props) {
           </View>
         </View>
         <View style={styles.divider}/>
-      </View>
+      </Pressable>
     );
   }
 
@@ -66,11 +77,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   trackIndex: {
-    width: '8%',
+    width: '12%',
     display: 'flex',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  playIcon: {
+    textAlign: 'center'
   },
   trackArt: {
     padding: 4,
@@ -88,7 +102,7 @@ const styles = StyleSheet.create({
   },
   trackName: {
     padding: 7,
-    width: '35%',
+    width: '33%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -96,7 +110,7 @@ const styles = StyleSheet.create({
   },
   trackAlbumName: {
     padding: 5,
-    width: Dimensions.get('screen').width < 600 ? '27%' : '33%',
+    width: Dimensions.get('screen').width < 600 ? '25%' : '31%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -111,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   divider: {
-    height: 5,
+    height: 10,
     width: '100%'
   },
   text: {
